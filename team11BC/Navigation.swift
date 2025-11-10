@@ -13,7 +13,7 @@ struct MainTabView: View {
             // Inventory (Home) Page
             NavigationView {
                 InventoryView()
-                    .navigationTitle("Homw")
+                    .navigationTitle("Home")
             }
             .tabItem {
                 Image(systemName: "list.bullet")
@@ -30,17 +30,27 @@ struct MainTabView: View {
                 Text("Report Lost")
             }.tint(.blue)
            
-            // Bounty Page
             NavigationView {
-                Text("Bounty Page")
-                    .navigationTitle("Bounties")
+                ReportFoundView()
+                    .navigationTitle("Report Found Item")
             }
             .tabItem {
                 Image(systemName: "doc.richtext")
-                Text("Bounties")
+                Text("Report Found")
             }.tint(.blue)
+            
+            
+//            // Bounty Page
+//            NavigationView {
+//                Text("Bounty Page")
+//                    .navigationTitle("Bounties")
+//            }
+//            .tabItem {
+//                Image(systemName: "doc.richtext")
+//                Text("Bounties")
+//            }.tint(.blue)
         }
-        }
+    }
 }
 
 #Preview {
