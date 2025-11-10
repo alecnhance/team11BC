@@ -27,13 +27,18 @@ struct InventoryView: View {
     @State private var selectedItem: FoundItem? = nil
     @State private var selectedCategory: Category = Category.none
     
+    let itemsFoundColor = Color(red: 231/255, green: 236/255, blue: 239/255)
+    let backgroundColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    let catButtonBGColor = Color(red: 163/255, green: 206/255, blue: 241/255)
+    let catButtonFGColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    
     var body: some View {
         NavigationStack {
             
             VStack {
                 Text("Items Found")
                     .font(.largeTitle.bold())
-                    .foregroundStyle(Color(red: 39/255, green: 76/255, blue: 119/255))
+                    .foregroundStyle(itemsFoundColor)
                 Menu {
                     ForEach (Category.allCases, id: \.self) { category in
                         Button(category.rawValue) {
@@ -43,19 +48,16 @@ struct InventoryView: View {
                 } label: {
                     Label(selectedCategory.rawValue, systemImage: "chevron.down")
                         .padding()
-                        .background(Color(red: 96/255, green: 150/255, blue: 186/255))
-                        .cornerRadius(8)
-                        .foregroundStyle(Color(red: 255/255, green: 255/255, blue: 255/255))
+                        .background(catButtonBGColor)
+                        .cornerRadius(5)
+                        .foregroundStyle(catButtonFGColor)
                         .font(.system(size: 20))
                 }
-            
-                
-                
-                
+  
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(viewModel.foundItems) { item in
-                            
+                                        
                             if selectedCategory == .none || item.category == selectedCategory {
                                 Button {
                                     selectedItem = item
@@ -63,7 +65,7 @@ struct InventoryView: View {
                                     FoundItemCard(item: item)
                                 }
                             }
-                            
+                                        
                         }
                     }
                     .padding()
@@ -71,10 +73,10 @@ struct InventoryView: View {
                 .sheet(item: $selectedItem) { item in
                     FoundItemDetailView(item: item)
                 }
-                
+                            
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.white)
+            .background(backgroundColor)
         }.navigationTitle("InventoryView")
     }
     
@@ -83,11 +85,16 @@ struct InventoryView: View {
 struct FoundItemCard: View {
     let item: FoundItem
     
+    let BGColor = Color(red: 163/255, green: 206/255, blue: 241/255)
+    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    let locaColor = Color(red: 96/255, green: 150/255, blue: 186/255)
+       
+    
     var body: some View {
         VStack {
             Text(item.category.rawValue)
                 .font(.title)
-                .foregroundStyle(Color(red: 255/255, green: 255/255, blue: 255/255))
+                .foregroundStyle(titleColor)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
             Spacer()
@@ -105,14 +112,14 @@ struct FoundItemCard: View {
             Spacer()
             Text(item.location)
                 .font(.title3)
-                .foregroundStyle(Color(red: 231/255, green: 236/255, blue: 239/255))
+                .foregroundStyle(locaColor)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
                 .italic()
         }
         .padding()
         .frame(width: UIScreen.main.bounds.width * 0.925)
-        .background(Color(red: 39/255, green: 76/255, blue: 119/255))
+        .background(BGColor)
         .cornerRadius(12)
         .shadow(radius: 0)
     }
@@ -121,13 +128,19 @@ struct FoundItemCard: View {
 struct FoundItemDetailView: View {
     let item: FoundItem
     
+    let BGColor = Color(red: 255/255, green: 255/255, blue: 255/255)
+    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    let bodyColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+       
+       
+    
     var body: some View {
         ScrollView {
             VStack {
                 Text(item.category.rawValue)
                     .font(.title)
                     .bold()
-                    .foregroundStyle(Color(red: 0.1529, green: 0.2980, blue: 0.4667))
+                    .foregroundStyle(titleColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(nil)
                 Image(item.image)
@@ -137,24 +150,25 @@ struct FoundItemDetailView: View {
                     .cornerRadius(10)
                 Spacer(minLength: UIScreen.main.bounds.width * 0.10)
                 Text("Description:")
-                    .foregroundStyle(Color(red: 0.1529, green: 0.2980, blue: 0.4667))
+                    .foregroundStyle(bodyColor)
                     .font(.system(size: 19.5))
                 Text(item.description)
                     .font(.system(size: 19.5))
-                    .foregroundStyle(Color(red: 0.1529, green: 0.2980, blue: 0.4667))
+                    .foregroundStyle(bodyColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(nil)
                 Spacer(minLength: UIScreen.main.bounds.width * 0.075)
                 Text("Last Location:")
                     .font(.system(size: 19.5))
-                    .foregroundStyle(Color(red: 0.1529, green: 0.2980, blue: 0.4667))
+                    .foregroundStyle(bodyColor)
                 Text(item.location)
                     .font(.system(size: 19.5))
-                    .foregroundStyle(Color(red: 0.1529, green: 0.2980, blue: 0.4667))
+                    .foregroundStyle(bodyColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(nil)
             }
             .padding()
+            .background(BGColor)
         }
     }
     
