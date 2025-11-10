@@ -32,15 +32,15 @@ struct ContentView: View {
                             .foregroundColor(.black)
                     }
                     
-                    NavigationLink(destination: LostAndFoundView()) {
-                        Text("Report a lost item")
-                            .foregroundColor(.black)
-                            .font(.body)
-                            .padding()
-                            .background(Color(red: 0.0 / 0.0, green: 0.0 / 0.0, blue: 239.0 / 255.0))
-                            .cornerRadius(12)
-                            .foregroundColor(.black)
-                    }
+//                    NavigationLink(destination: LostAndFoundView()) {
+//                        Text("Report a lost item")
+//                            .foregroundColor(.black)
+//                            .font(.body)
+//                            .padding()
+//                            .background(Color(red: 0.0 / 0.0, green: 0.0 / 0.0, blue: 239.0 / 255.0))
+//                            .cornerRadius(12)
+//                            .foregroundColor(.black)
+//                    }
                     
                     NavigationLink(destination: ReportFoundView()) {
                         Text("Report a found item")
