@@ -75,7 +75,7 @@ struct InventoryView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
-        }
+        }.navigationTitle("InventoryView")
     }
     
 }
