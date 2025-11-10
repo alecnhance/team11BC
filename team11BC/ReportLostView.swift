@@ -13,7 +13,7 @@ struct LostItem: Identifiable {
     var contact: String
 }
 
-struct LostAndFoundView: View {
+struct ReportLostView: View {
     @State private var itemName = ""
     @State private var description = ""
     @State private var contactInfo = ""
@@ -131,7 +131,7 @@ struct LostAndFoundView: View {
         } message: {
             Text(isEditing ? "Your item details have been updated." : "Your lost item has been submitted.")
         }
-        .navigationTitle("Lost & Found")
+        .navigationTitle("Report Lost")
     }
     
     private func handleSubmit() {
@@ -166,5 +166,5 @@ struct LostAndFoundView: View {
 }
 
 #Preview {
-    LostAndFoundView()
+    ReportLostView()
 }
