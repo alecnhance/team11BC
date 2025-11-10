@@ -13,23 +13,42 @@ struct ContentView: View {
             ZStack {
                 Color(red: 39.0 / 255.0, green: 76.0 / 255.0, blue: 119.0 / 255.0)
                     .ignoresSafeArea()
-                HStack{
+                
+                VStack(spacing: 30) {
                     Text("Lost and Found App")
                         .foregroundColor(.white)
                         .bold()
                         .multilineTextAlignment(.center)
-                        .padding(.bottom, 100)
                         .font(.title)
+                        .padding(.bottom, 60)
+                    
+                    NavigationLink(destination: InventoryTracker()) {
+                        Text("Continue as a Guest")
+                            .foregroundColor(.black)
+                            .font(.body)
+                            .padding()
+                            .background(Color(red: 0.0 / 0.0, green: 0.0 / 0.0, blue: 239.0 / 255.0))
+                            .cornerRadius(12)
+                            .foregroundColor(.black)
+                    }
+                    
+                    NavigationLink(destination: LostAndFoundView()) {
+                        Text("Go to Lost and Found")
+                            .foregroundColor(.black)
+                            .font(.body)
+                            .padding()
+                            .background(Color(red: 0.0 / 0.0, green: 0.0 / 0.0, blue: 239.0 / 255.0))
+                            .cornerRadius(12)
+                            .foregroundColor(.black)
+                    }
                 }
-                NavigationLink(destination: InventoryTracker()) {
-                    Text("Continue as a guest")
-                        .foregroundColor(.white)
-                        .font(.body)
-                }
+                .padding()
             }
-        }.navigationTitle("Main View")
+        }
+        .navigationTitle("Main View")
     }
 }
+
 #Preview {
     ContentView()
 }
