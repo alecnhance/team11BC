@@ -6,13 +6,15 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct FoundItem: Identifiable {
-    var id: UUID = UUID()
+    let id = UUID()
     var category: Category
     var description: String
     var image: String
     var location: String
+    var contact: String
 }
 
 enum Category: String, CaseIterable {
@@ -20,5 +22,8 @@ enum Category: String, CaseIterable {
     case waterBottle = "Water Bottle"
     case electronic = "Electronic"
     case bag = "Bag"
+    
+    var id: String {
+        self.rawValue
+    }
 }
-
