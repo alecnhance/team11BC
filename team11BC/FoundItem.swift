@@ -22,6 +22,9 @@ enum Category: String, CaseIterable {
     case waterBottle = "Water Bottle"
     case electronic = "Electronic"
     case bag = "Bag"
+    case clothing = "Clothing"
+    case card = "Card"
+    case other = "Others"
     
     var id: String {
         self.rawValue
