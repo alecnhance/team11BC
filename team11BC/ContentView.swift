@@ -22,8 +22,8 @@ struct ContentView: View {
                         .font(.title)
                         .padding(.bottom, 60)
                     
-                    NavigationLink(destination: InventoryTracker()) {
-                        Text("Continue as a Guest")
+                    NavigationLink(destination: InventoryView()) {
+                        Text("View lost and found inventory")
                             .foregroundColor(.black)
                             .font(.body)
                             .padding()
@@ -33,7 +33,7 @@ struct ContentView: View {
                     }
                     
                     NavigationLink(destination: LostAndFoundView()) {
-                        Text("Go to Lost and Found")
+                        Text("Report a lost item")
                             .foregroundColor(.black)
                             .font(.body)
                             .padding()
@@ -41,6 +41,16 @@ struct ContentView: View {
                             .cornerRadius(12)
                             .foregroundColor(.black)
                     }
+                    
+//                    NavigationLink(destination: ReportFoundView()) {
+//                        Text("Report a found item")
+//                            .foregroundColor(.black)
+//                            .font(.body)
+//                            .padding()
+//                            .background(Color(red: 0.0 / 0.0, green: 0.0 / 0.0, blue: 239.0 / 255.0))
+//                            .cornerRadius(12)
+//                            .foregroundColor(.black)
+//                    }
                 }
                 .padding()
             }
