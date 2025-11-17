@@ -64,6 +64,7 @@ struct ReportFoundView: View {
                         TextField("Enter where you found the item", text: $location)
                             .padding()
                             .background(Color(red: 231/255, green: 236/255, blue: 239/255))
+                            .cornerRadius(10)
                         
                         Text("Contact Details")
                             .foregroundColor(.white)
