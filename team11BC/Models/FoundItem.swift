@@ -12,7 +12,7 @@ struct FoundItem: Identifiable {
     let id = UUID()
     var category: Category
     var description: String
-    var image: String
+    var image: Data?
     var location: String
     var contact: String
 }
@@ -22,6 +22,9 @@ enum Category: String, CaseIterable {
     case waterBottle = "Water Bottle"
     case electronic = "Electronic"
     case bag = "Bag"
+    case clothing = "Clothing"
+    case card = "Card"
+    case other = "Others"
     
     var id: String {
         self.rawValue

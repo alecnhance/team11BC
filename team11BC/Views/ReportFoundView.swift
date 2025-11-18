@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct ReportFoundView: View {
     @State private var selectedCategory: Category = .none
@@ -13,6 +14,8 @@ struct ReportFoundView: View {
     @State private var contactInfo: String = ""
     @State private var location: String = ""
     @State private var showAlert: Bool = false
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var selectedImageData: Data?
     
     @State private var editingItem: FoundItem?
     @State private var isEditing: Bool = false
@@ -64,6 +67,7 @@ struct ReportFoundView: View {
                         TextField("Enter where you found the item", text: $location)
                             .padding()
                             .background(Color(red: 231/255, green: 236/255, blue: 239/255))
+                            .cornerRadius(10)
                         
                         Text("Contact Details")
                             .foregroundColor(.white)
@@ -72,6 +76,38 @@ struct ReportFoundView: View {
                             .padding()
                             .background(Color(red: 231/255, green: 236/255, blue: 239/255))
                             .cornerRadius(10)
+                        
+                        Text("Image (Optional)")
+                            .foregroundColor(.white)
+                            .font(.headline)
+                        
+                        PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                            HStack {
+                                Image(systemName: "photo.on.rectangle")
+                                Text("Select Image")
+                            }
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color(red: 231/255, green: 236/255, blue: 239/255))
+                            .cornerRadius(10)
+                        }
+                        .onChange(of: selectedPhoto) { oldValue, newValue in
+                            Task {
+                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                    selectedImageData = data
+                                }
+                            }
+                        }
+                        if let selectedImageData,
+                           let uiImage = UIImage(data: selectedImageData) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 150)
+                                .cornerRadius(12)
+                                .padding(.top, 5)
+                        }
                     }
                     .padding(.horizontal)
                     
@@ -101,6 +137,15 @@ struct ReportFoundView: View {
                         VStack(spacing: 12) {
                             ForEach(viewModel.foundItems) { item in
                                 VStack(alignment: .leading, spacing: 6) {
+                                    if let data = item.image,
+                                       let img = UIImage(data: data) {
+                                        Image(uiImage: img)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 120)
+                                            .cornerRadius(10)
+                                    }
+                                    
                                     Text(item.category.rawValue)
                                         .font(.headline)
                                     Text(item.description)
@@ -151,7 +196,7 @@ struct ReportFoundView: View {
         let newItem = FoundItem(
             category: selectedCategory,
             description: description,
-            image: "placeholder",
+            image: selectedImageData,
             location: location,
             contact: contactInfo
         )
@@ -167,6 +212,7 @@ struct ReportFoundView: View {
         description = ""
         location = ""
         contactInfo = ""
+        selectedImageData = nil
         showAlert = true
     }
     
@@ -181,6 +227,8 @@ struct ReportFoundView: View {
         description = item.description
         location = item.location
         contactInfo = item.contact
+        selectedImageData = item.image
+        
         editingItem = item
         isEditing = true
     }
