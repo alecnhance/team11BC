@@ -12,7 +12,7 @@ struct FoundItem: Identifiable {
     let id = UUID()
     var category: Category
     var description: String
-    var image: String
+    var image: Data?
     var location: String
     var contact: String
 }
