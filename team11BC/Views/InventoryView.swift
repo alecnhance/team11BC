@@ -19,8 +19,6 @@ import SwiftUI
  */
 
 
-
-
 struct InventoryView: View {
     
     @State private var viewModel = FoundItemsViewModel()
@@ -157,11 +155,20 @@ struct FoundItemCard: View {
             Spacer()
             
             GeometryReader { geo in
-                Image(item.image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
-                    .clipped()
+                if let data = item.image, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                        .clipped()
+                    
+                } else {
+                    Image(systemName: "photo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                        .foregroundStyle(.gray)
+                }
             }
             .frame(width: UIScreen.main.bounds.width * 0.625, height: UIScreen.main.bounds.height * 0.25)
              .cornerRadius(8)
@@ -272,11 +279,21 @@ struct FoundItemDetailView: View {
                     .foregroundStyle(titleColor)
                     .multilineTextAlignment(.center)
                     .lineLimit(nil)
-                Image(item.image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: UIScreen.main.bounds.width * 0.75)
-                    .cornerRadius(10)
+                if let data = item.image,
+                   let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: UIScreen.main.bounds.width * 0.75)
+                        .cornerRadius(10)
+                } else {
+                    Image(systemName: "photo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: UIScreen.main.bounds.width * 0.75)
+                        .cornerRadius(10)
+                        .foregroundStyle(.gray)
+                }
                 Spacer(minLength: UIScreen.main.bounds.width * 0.10)
                 Text("Description:")
                     .foregroundStyle(bodyColor)
