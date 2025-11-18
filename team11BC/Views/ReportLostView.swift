@@ -106,7 +106,7 @@ struct ReportLostView: View {
                                         }
                                         .foregroundColor(.blue)
                                         
-                                        Button("Delete") {
+                                        Button("Resolve") {
                                             deleteItem(item)
                                         }
                                         .foregroundColor(.red)
