@@ -19,8 +19,6 @@ import SwiftUI
  */
 
 
-
-
 struct InventoryView: View {
     
     @State private var viewModel = FoundItemsViewModel()
