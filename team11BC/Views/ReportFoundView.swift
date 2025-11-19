@@ -29,7 +29,7 @@ struct ReportFoundView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Report Found Item")
+                    Text("Report a Found Item")
                         .foregroundColor(.white)
                         .font(.largeTitle)
                         .bold()
@@ -207,7 +207,7 @@ struct ReportFoundView: View {
         } message: {
             Text(isEditing ? "Your item details have been updated." : "The misplaced item has been submitted.")
         }
-        .navigationTitle("Inventory Tracker")
+//        .navigationTitle("Inventory Tracker")
     }
     
     private func handleSubmit() {

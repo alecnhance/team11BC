@@ -23,7 +23,7 @@ struct ReportLostView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Lost and Found")
+                    Text("Report a Lost Item")
                         .foregroundColor(.white)
                         .font(.largeTitle)
                         .bold()
@@ -116,7 +116,7 @@ struct ReportLostView: View {
         } message: {
             Text(isEditing ? "Your item details have been updated." : "Your lost item has been submitted.")
         }
-        .navigationTitle("Report Lost")
+//        .navigationTitle("Report Lost")
     }
     
     private func handleSubmit() {

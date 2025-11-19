@@ -33,7 +33,7 @@ struct InventoryView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                Text("Items Collection")
+                Text("Inventory of Items")
                     .font(.largeTitle.bold())
                     .foregroundStyle(itemsFoundColor)
                 
@@ -119,7 +119,7 @@ struct InventoryView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(backgroundColor)
-            .navigationTitle("InventoryView")
+//            .navigationTitle("InventoryView")
         }
     }
 }

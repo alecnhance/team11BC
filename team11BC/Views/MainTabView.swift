@@ -15,7 +15,7 @@ struct MainTabView: View {
             // Inventory (Home) Page
             NavigationView {
                 InventoryView(viewModel: viewModel)
-                    .navigationTitle("Home")
+//                    .navigationTitle("Home")
             }
             .tabItem {
                 Image(systemName: "list.bullet")
@@ -25,7 +25,7 @@ struct MainTabView: View {
             // Report Lost Item Page
             NavigationView {
                 ReportLostView(viewModel: viewModel)
-                    .navigationTitle("Report Lost")
+//                    .navigationTitle("Report Lost")
             }
             .tabItem {
                 Image(systemName: "exclamationmark.bubble")
@@ -34,7 +34,7 @@ struct MainTabView: View {
            
             NavigationView {
                 ReportFoundView(viewModel: viewModel)
-                    .navigationTitle("Report Found Item")
+//                    .navigationTitle("Report Found")
             }
             .tabItem {
                 Image(systemName: "doc.richtext")
@@ -51,7 +51,10 @@ struct MainTabView: View {
 //                Image(systemName: "doc.richtext")
 //                Text("Bounties")
 //            }.tint(.blue)
-        }
+        }/*.tint(.black).toolbarBackground(Color.blue, for: .tabBar)*/
+            .onAppear {
+                    UITabBar.appearance().backgroundColor = .lightGray
+                }
     }
 }
 
