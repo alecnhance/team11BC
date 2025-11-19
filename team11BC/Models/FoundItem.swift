@@ -7,12 +7,12 @@
 
 import Foundation
 import SwiftUI
-
 struct FoundItem: Identifiable {
     let id = UUID()
     var category: Category
     var description: String
-    var image: Data?
+    var image: String?
+    var imageURL: String?
     var location: String
     var contact: String
 }
@@ -26,7 +26,6 @@ enum Category: String, CaseIterable {
     case card = "Card"
     case other = "Others"
     
-    var id: String {
-        self.rawValue
-    }
+    var id: String { self.rawValue }
 }
+
