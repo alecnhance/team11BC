@@ -100,8 +100,6 @@ struct ReportFoundView: View {
                                                         .foregroundColor(Color(.label))
                         
                         TextField("Enter your email or phone", text: $contactInfo)
-                            .keyboardType(.emailAddress)
-                            .autocapitalization(.none)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
                             .background(cardBackground)
@@ -152,11 +150,11 @@ struct ReportFoundView: View {
                     
                     Button(action: { handleSubmit() }) {
                         Text(isEditing ? "Save Changes" : "Submit")
-                            .foregroundColor(Color(red: 39/255, green: 76/255, blue: 119/255))
+                            .foregroundColor(Color.white)
                             .fontWeight(.bold)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color(red: 231/255, green: 236/255, blue: 239/255))
+                            .background(primaryBlue)
                             .cornerRadius(12)
                             .padding(.horizontal)
                     }
@@ -166,10 +164,8 @@ struct ReportFoundView: View {
                     
                     if !viewModel.foundItems.isEmpty {
                         Text("Reported Items")
-                            .foregroundColor(.white)
-                            .font(.headline)
-                            .padding(.horizontal)
-                            .padding(.top, 10)
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundColor(Color(.label))
                         
                         VStack(spacing: 12) {
                             ForEach(viewModel.foundItems) { item in
