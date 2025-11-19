@@ -7,73 +7,85 @@
 
 import SwiftUI
 
-/* Colors:
-   Dark Blue: 39, 76, 119
-   Middle Blue: 96, 150, 186
-   Light Blue: 163, 206, 241
-   Nearly White Blue: 231, 236, 239
-   Middle Grey: 139, 140, 137
-*/
+
 
 struct InventoryView: View {
     let viewModel: FirebaseViewModel
     @State private var selectedFoundItem: FoundItem? = nil
     @State private var selectedLostItem: LostItem? = nil
-    @State private var selectedCategory: Category = .none
+    @State private var selectedCategory: Category = Category.none
     @State private var selectedLostFound: Int = 0
     @State private var foundItemSheet: Bool = true
     
-    let itemsFoundColor = Color(red: 255/255, green: 255/255, blue: 255/255)
-    let backgroundColor = Color(red: 9/255, green: 9/255, blue: 93/255)
-    let catButtonBGColor = Color(red: 26/255, green: 26/255, blue: 174/255)
-    let catButtonFGColor = Color(red: 255/255, green: 255/255, blue: 255/255)
+    let primaryBlue = Color(red: 0.0, green: 0.47, blue: 1.0)
+    let backgroundColor = Color(.systemGroupedBackground)
+    let cardBackground = Color(.systemBackground)
     
     let itemsOption = ["View All", "Found Items", "Lost Items"]
     
     var body: some View {
-        NavigationStack {
-            VStack {
-                Text("Items Collection")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(itemsFoundColor)
-                
-                // Top Menu
-                HStack {
-                    Menu {
-                        ForEach(0...2, id: \.self) { i in
-                            Button(itemsOption[i]) {
-                                selectedLostFound = i
-                                if selectedLostFound != 1 { selectedCategory = .none }
-                            }
-                        }
-                    } label: {
-                        Label(itemsOption[selectedLostFound], systemImage: "chevron.down")
-                            .padding()
-                            .background(catButtonBGColor)
-                            .cornerRadius(5)
-                            .foregroundStyle(catButtonFGColor)
-                            .font(.system(size: 20))
-                    }
-                    
-                    // Category picker for Found Items
-                    if selectedLostFound == 1 {
+        NavigationView {
+            VStack(spacing: 0) {
+                // Filter Section
+                VStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         Menu {
-                            ForEach(Category.allCases, id: \.self) { category in
-                                Button(category.rawValue) { selectedCategory = category }
+                            ForEach(0...2, id: \.self) { i in
+                                Button(itemsOption[i]) {
+                                    selectedLostFound = i
+                                    if selectedLostFound != 1 {
+                                        selectedCategory = Category.none
+                                    }
+                                }
                             }
                         } label: {
-                            Label(selectedCategory.rawValue, systemImage: "chevron.down")
-                                .padding()
-                                .background(catButtonBGColor)
-                                .cornerRadius(5)
-                                .foregroundStyle(catButtonFGColor)
-                                .font(.system(size: 20))
+                            HStack {
+                                Text(itemsOption[selectedLostFound])
+                                    .font(.system(size: 16, weight: .medium))
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 12, weight: .semibold))
+                            }
+                            .foregroundColor(primaryBlue)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(cardBackground)
+                            .cornerRadius(12)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                        }
+                        
+                        if (selectedLostFound == 1) {
+                            Menu {
+                                ForEach (Category.allCases.filter { $0 != .none }, id: \.self) { category in
+                                    Button(category.rawValue) {
+                                        selectedCategory = category
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(selectedCategory == .none ? "All Categories" : selectedCategory.rawValue)
+                                        .font(.system(size: 16, weight: .medium))
+                                    Image(systemName: "chevron.down")
+                                        .font(.system(size: 12, weight: .semibold))
+                                }
+                                .foregroundColor(primaryBlue)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(cardBackground)
+                                .cornerRadius(12)
+                                .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                            }
+                            
+                            Spacer()
                         }
                     }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
                 }
+                .background(backgroundColor)
                 
+                //Items List
                 ScrollView {
-                    VStack(spacing: 12) {
+                    LazyVStack(spacing: 16) {
                         // Found Items
                         ForEach(viewModel.foundItems) { item in
                             if selectedLostFound != 2 && (selectedCategory == .none || item.category == selectedCategory) {
@@ -83,6 +95,7 @@ struct InventoryView: View {
                                 } label: {
                                     FoundItemCard(item: item)
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                         
@@ -95,243 +108,400 @@ struct InventoryView: View {
                                 } label: {
                                     LostItemCard(item: lostItem)
                                 }
+                                .buttonStyle(PlainButtonStyle())
                             }
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 16)
                 }
             }
-            .sheet(
-                isPresented: Binding(
-                    get: { selectedFoundItem != nil || selectedLostItem != nil },
-                    set: { newValue in
-                        if !newValue {
-                            selectedFoundItem = nil
-                            selectedLostItem = nil
-                        }
-                    })
-            ) {
-                if foundItemSheet, let item = selectedFoundItem {
+            .background(backgroundColor)
+        }
+        .background(backgroundColor)
+        .sheet(isPresented: Binding(
+            get: { selectedFoundItem != nil || selectedLostItem != nil },
+            set: { newValue in
+                if !newValue {
+                    selectedFoundItem = nil
+                    selectedLostItem = nil
+                }
+                
+            }
+        )) {
+            NavigationView {
+                if let item = selectedFoundItem {
                     FoundItemDetailView(item: item)
                 } else if let item = selectedLostItem {
                     LostItemDetailView(item: item)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(backgroundColor)
-            .navigationTitle("InventoryView")
         }
     }
 }
 
 struct FoundItemCard: View {
     let item: FoundItem
-    let BGColor = Color(red: 163/255, green: 206/255, blue: 241/255)
-    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
-    let locaColor = Color(red: 96/255, green: 150/255, blue: 186/255)
+    
+    let primaryBlue = Color(red: 0.0, green: 0.47, blue: 1.0)
+    let cardBackground = Color(.systemBackground)
     
     var body: some View {
-        VStack {
-            Text(item.category.rawValue)
-                .font(.title)
-                .foregroundStyle(titleColor)
-                .multilineTextAlignment(.center)
-            
-            Spacer()
-            
-            GeometryReader { geo in
+        VStack(alignment: .leading, spacing: 0) {
+             // Image Section
+             Group {
                 if let urlString = item.imageURL, let url = URL(string: urlString) {
                     AsyncImage(url: url) { phase in
                         switch phase {
                         case .empty:
                             ProgressView()
-                                .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                                .frame(height: 200)
                         case .success(let image):
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                                .frame(height: 200)
                                 .clipped()
                         case .failure:
                             Image(systemName: "photo")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                                .frame(height: 200)
                                 .foregroundStyle(.gray)
                         @unknown default:
                             EmptyView()
                         }
                     }
                 } else {
-                    Image(systemName: "photo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
-                        .foregroundStyle(.gray)
+                    ZStack {
+                        Color(.systemGray5)
+                        Image(systemName: "photo")
+                            .font(.system(size: 48))
+                            .foregroundColor(Color(.systemGray3))
+                    }
+                    .frame(height: 200)
                 }
             }
-            .frame(width: UIScreen.main.bounds.width * 0.625, height: UIScreen.main.bounds.height * 0.25)
-            .cornerRadius(8)
             
-            Spacer()
-            
-            Text(item.location)
-                .font(.title3)
-                .foregroundStyle(locaColor)
-                .multilineTextAlignment(.center)
-                .italic()
+            //content section
+            VStack(alignment: .leading, spacing: 12) {
+                // Category Badge
+                HStack {
+                    Text(item.category.rawValue)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(primaryBlue)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(primaryBlue.opacity(0.1))
+                        .cornerRadius(8)
+                    
+                    Spacer()
+                }
+                
+                // Location
+                HStack(spacing: 6) {
+                    Image(systemName: "location.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(.secondaryLabel))
+                    Text(item.location)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(Color(.label))
+                }
+                
+                // Description Preview
+                if !item.description.isEmpty {
+                    Text(item.description)
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(.secondaryLabel))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+            }
+            .padding(16)
         }
-        .padding()
-        .frame(width: UIScreen.main.bounds.width * 0.925)
-        .background(BGColor)
-        .cornerRadius(12)
-        .shadow(radius: 0)
+        .background(cardBackground)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
     }
 }
 
 struct LostItemCard: View {
     let item: LostItem
-    let BGColor = Color(red: 163/255, green: 206/255, blue: 241/255)
-    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
-    let locaColor = Color(red: 96/255, green: 150/255, blue: 186/255)
+    let primaryBlue = Color(red: 0.0, green: 0.47, blue: 1.0)
+    let cardBackground = Color(.systemBackground)
     
     var body: some View {
-        VStack {
-            Text(item.name)
-                .font(.title)
-                .foregroundStyle(titleColor)
-                .multilineTextAlignment(.center)
+        
+        VStack(alignment: .leading, spacing: 16) {
+            // Lost Badge
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12))
+                    Text("LOST")
+                        .font(.system(size: 12, weight: .bold))
+                }
+                .foregroundColor(.orange)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(Color.orange.opacity(0.15))
+                .cornerRadius(8)
+                
+                Spacer()
+            }
             
-            Spacer()
+            // Item Name
+            Text(item.name)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Color(.label))
+                .multilineTextAlignment(.leading)
+            
+            // Description
             
             Text(item.description)
-                .font(.title3)
-                .foregroundStyle(locaColor)
-                .multilineTextAlignment(.center)
-                .lineLimit(4)
-                .italic()
+                .font(.system(size: 15))
+                .foregroundColor(Color(.secondaryLabel))
+                .multilineTextAlignment(.leading)
+                .lineLimit(3)
+            
+            // Contact Info
+            HStack(spacing: 6) {
+                Image(systemName: "phone.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(.secondaryLabel))
+                Text("Contact Available")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Color(.secondaryLabel))
+            }
         }
-        .padding()
-        .frame(width: UIScreen.main.bounds.width * 0.925)
-        .background(BGColor)
-        .cornerRadius(12)
-        .shadow(radius: 0)
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(cardBackground)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
     }
 }
 
 // MARK: - Found Item Detail View
 struct FoundItemDetailView: View {
+    
     let item: FoundItem
-    let BGColor = Color(red: 255/255, green: 255/255, blue: 255/255)
-    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
-    let bodyColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    
+    @Environment(\.dismiss) private var dismiss
+    
+    let primaryBlue = Color(red: 0.0, green: 0.47, blue: 1.0)
     
     var body: some View {
         ScrollView {
-            VStack {
-                Text(item.category.rawValue)
-                    .font(.title)
-                    .bold()
-                    .foregroundStyle(titleColor)
-                    .multilineTextAlignment(.center)
-                
-                if let urlString = item.imageURL, let url = URL(string: urlString) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .empty:
-                            ProgressView()
-                                .frame(width: UIScreen.main.bounds.width * 0.75, height: 200)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: UIScreen.main.bounds.width * 0.75)
-                                .cornerRadius(10)
-                        case .failure:
-                            Image(systemName: "photo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: UIScreen.main.bounds.width * 0.75)
-                                .cornerRadius(10)
-                                .foregroundStyle(.gray)
-                        @unknown default:
-                            EmptyView()
-                        }
+            VStack(alignment: .leading, spacing: 24) {
+                // Header
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(item.category.rawValue)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(primaryBlue)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(primaryBlue.opacity(0.1))
+                            .cornerRadius(8)
+                        
+                        Spacer()
                     }
-                } else {
-                    Image(systemName: "photo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: UIScreen.main.bounds.width * 0.75)
-                        .cornerRadius(10)
-                        .foregroundStyle(.gray)
+                    
+                    Text(item.category.rawValue)
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Color(.label))
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                
+                // Image
+                Group {
+                    
+                    if let urlString = item.imageURL, let url = URL(string: urlString) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .empty:
+                                ProgressView()
+                                    .frame(width: UIScreen.main.bounds.width * 0.75, height: 200)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                     .aspectRatio(contentMode: .fit)
+                                     .frame(maxWidth: .infinity)
+                                     .cornerRadius(16)
+                                     .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
+                            case .failure:
+                                Image(systemName: "photo")
+                                    .resizable()
+                                     .aspectRatio(contentMode: .fit)
+                                     .frame(maxWidth: .infinity)
+                                     .cornerRadius(16)
+                                     .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
+                                    .foregroundStyle(.gray)
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    } else {
+                        ZStack {
+                            Color(.systemGray5)
+                            Image(systemName: "photo")
+                                .font(.system(size: 64))
+                                .foregroundColor(Color(.systemGray3))
+                        }
+                        .frame(height: 300)
+                        .cornerRadius(16)
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                
+                Divider()
+                    .padding(.horizontal, 20)
+                
+                // Description Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Description")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color(.label))
+                    
+                    Text(item.description)
+                        .font(.system(size: 17))
+                        .foregroundColor(Color(.secondaryLabel))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 20)
+                
+                Divider()
+                    .padding(.horizontal, 20)
+                
+                // Location Section
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Location Found")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color(.label))
+                    
+                    HStack(spacing: 12) {
+                        Image(systemName: "location.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(primaryBlue)
+                        
+                        Text(item.location)
+                            .font(.system(size: 17))
+                            .foregroundColor(Color(.label))
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.systemGray6))
+                    .cornerRadius(12)  //stop
                 }
                 
-                Spacer(minLength: UIScreen.main.bounds.width * 0.10)
-                
-                Text("Description:")
-                    .foregroundStyle(bodyColor)
-                    .font(.system(size: 19.5))
-                Text(item.description)
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                    .multilineTextAlignment(.center)
-                
-                Spacer(minLength: UIScreen.main.bounds.width * 0.075)
-                
-                Text("Last Location:")
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                Text(item.location)
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(nil)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
             }
-            .padding()
-            .background(BGColor)
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("Done") {
+                    dismiss()
+                }
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundColor(primaryBlue)
+            }
         }
     }
 }
 
 struct LostItemDetailView: View {
     let item: LostItem
-    let BGColor = Color(red: 255/255, green: 255/255, blue: 255/255)
-    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
-    let bodyColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    @Environment(\.dismiss) private var dismiss
+     
+    let primaryBlue = Color(red: 0.0, green: 0.47, blue: 1.0)
     
     var body: some View {
         ScrollView {
-            VStack {
-                Text(item.name)
-                    .font(.title)
-                    .bold()
-                    .foregroundStyle(titleColor)
-                    .multilineTextAlignment(.center)
-                
-                Spacer(minLength: UIScreen.main.bounds.height * 0.08)
-                
-                Text("Description:")
-                    .foregroundStyle(bodyColor)
-                    .font(.system(size: 19.5))
-                Text(item.description)
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                    .multilineTextAlignment(.center)
-                
-                Spacer(minLength: UIScreen.main.bounds.height * 0.08)
-                
-                Text("Contact Information:")
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                Text(item.contact)
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(nil)
+            VStack(alignment: .leading, spacing: 24) {
+                     // Header
+                     VStack(alignment: .leading, spacing: 8) {
+                         HStack {
+                             HStack(spacing: 6) {
+                                 Image(systemName: "exclamationmark.triangle.fill")
+                                     .font(.system(size: 14))
+                                 Text("LOST ITEM")
+                                     .font(.system(size: 13, weight: .bold))
+                             }
+                             .foregroundColor(.orange)
+                             .padding(.horizontal, 12)
+                             .padding(.vertical, 6)
+                             .background(Color.orange.opacity(0.15))
+                             .cornerRadius(8)
+                             
+                             Spacer()
+                         }
+                         
+                         Text(item.name)
+                             .font(.system(size: 32, weight: .bold))
+                             .foregroundColor(Color(.label))
+                     }
+                     .padding(.horizontal, 20)
+                     .padding(.top, 8)
+                     
+                     Divider()
+                         .padding(.horizontal, 20)
+                     
+                     // Description Section
+                     VStack(alignment: .leading, spacing: 12) {
+                         Text("Description")
+                             .font(.system(size: 17, weight: .semibold))
+                             .foregroundColor(Color(.label))
+                         
+                         Text(item.description)
+                             .font(.system(size: 17))
+                             .foregroundColor(Color(.secondaryLabel))
+                             .fixedSize(horizontal: false, vertical: true)
+                     }
+                     .padding(.horizontal, 20)
+                     
+                     Divider()
+                         .padding(.horizontal, 20)
+                     
+                     // Contact Section
+                     VStack(alignment: .leading, spacing: 12) {
+                         Text("Contact Information")
+                             .font(.system(size: 17, weight: .semibold))
+                             .foregroundColor(Color(.label))
+                         
+                         HStack(spacing: 12) {
+                             Image(systemName: "phone.fill")
+                                 .font(.system(size: 18))
+                                 .foregroundColor(primaryBlue)
+                             
+                             Text(item.contact)
+                                 .font(.system(size: 17))
+                                 .foregroundColor(Color(.label))
+                         }
+                         .padding()
+                         .frame(maxWidth: .infinity, alignment: .leading)
+                         .background(Color(.systemGray6))
+                         .cornerRadius(12)
+                     }
+                     .padding(.horizontal, 20)
+                     .padding(.bottom, 32)
+                 }
+             }
+             .background(Color(.systemGroupedBackground))
+             .navigationBarTitleDisplayMode(.inline)
+             .toolbar {
+                 ToolbarItem(placement: .navigationBarTrailing) {
+                     Button("Done") {
+                         dismiss()
+                     }
+                     .font(.system(size: 17, weight: .semibold))
+                     .foregroundColor(primaryBlue)
             }
-            .padding()
-            .background(BGColor)
         }
     }
 }

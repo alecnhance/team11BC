@@ -8,6 +8,11 @@ import SwiftUI
 
 struct ReportLostView: View {
     let viewModel: FirebaseViewModel
+    
+    let primaryBlue: Color = Color(red: 0.0, green: 0.47, blue: 1.0)
+    let backgroundColor: Color = Color(.systemGroupedBackground)
+    let cardBackground: Color = Color(.systemBackground)
+    
     @State private var itemName = ""
     @State private var description = ""
     @State private var contactInfo = ""
@@ -15,108 +20,188 @@ struct ReportLostView: View {
     @State private var lostItems: [LostItem] = []
     @State private var editingItem: LostItem?
     @State private var isEditing = false
+
     
     var body: some View {
-        ZStack {
-            Color(red: 39/255, green: 76/255, blue: 119/255)
-                .ignoresSafeArea()
             
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("Lost and Found")
-                        .foregroundColor(.white)
-                        .font(.largeTitle)
-                        .bold()
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.top, 20)
+                VStack(spacing: 24) {
                     
-                    VStack(alignment: .leading, spacing: 15) {
-                        Group {
+                    VStack(spacing: 20) {
+                        //item name
+                        VStack(alignment: .leading, spacing: 8) {
                             Text("Item Name")
-                                .foregroundColor(.white)
-                                .font(.headline)
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(Color(.label))
+                            
                             TextField("Enter the item you lost", text: $itemName)
-                                .padding()
-                                .background(Color(red: 231/255, green: 236/255, blue: 239/255))
-                                .cornerRadius(10)
-                            
-                            Text("Description")
-                                .foregroundColor(.white)
-                                .font(.headline)
-                            TextEditor(text: $description)
-                                .frame(height: 100)
-                                .padding(8)
-                                .background(Color(red: 231/255, green: 236/255, blue: 239/255))
-                                .cornerRadius(10)
-                            
-                            Text("Contact Details")
-                                .foregroundColor(.white)
-                                .font(.headline)
-                            TextField("Enter your email or phone", text: $contactInfo)
-                                .padding()
-                                .background(Color(red: 231/255, green: 236/255, blue: 239/255))
-                                .cornerRadius(10)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(cardBackground)
+                                .cornerRadius(12)
+                                .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
                         }
+                        // Description
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Description")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(Color(.label))
+                            
+                            ZStack(alignment: .topLeading) {
+                                if description.isEmpty {
+                                    Text("Describe the item you lost...")
+                                        .foregroundColor(Color(.placeholderText))
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 8)
+                                }
+
+
+                            TextEditor(text: $description)
+                                .frame(minHeight: 100)
+                                .scrollContentBackground(.hidden)
+                                .padding(4)
+                                
+                        }
+                        .padding(8)
+                        .background(cardBackground)
+                        .cornerRadius(12)
+                        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
                     }
-                    .padding(.horizontal)
                     
-                    Button(action: { handleSubmit() }) {
-                        Text(isEditing ? "Save Changes" : "Submit")
-                            .foregroundColor(Color(red: 39/255, green: 76/255, blue: 119/255))
-                            .fontWeight(.bold)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(red: 231/255, green: 236/255, blue: 239/255))
+                        // Contact Details
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Contact Details")
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(Color(.label))
+                            
+                            TextField("Enter your email or phone", text: $contactInfo)
+                                .keyboardType(.emailAddress)
+                                .autocapitalization(.none)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(cardBackground)
                             .cornerRadius(12)
-                            .padding(.horizontal)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
                     }
-                    .padding(.top, 10)
                     
-                    if !viewModel.lostItems.isEmpty {
-                        Text("Reported Items")
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    
+                    // Submit Button
+                    Button(action: {
+                        handleSubmit()
+                    }) {
+                        Text(isEditing ? "Save Changes" : "Submit")
+                            .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(.white)
-                            .font(.headline)
-                            .padding(.horizontal)
-                            .padding(.top, 10)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .background(primaryBlue)
+                            .cornerRadius(12)
+                            .shadow(color: primaryBlue.opacity(0.3), radius: 8, y: 4)
+                    }
+                    .padding(.horizontal, 16)
+                    .disabled(itemName.isEmpty || description.isEmpty || contactInfo.isEmpty)
+                    .opacity((itemName.isEmpty || description.isEmpty || contactInfo.isEmpty) ? 0.5 : 1.0)
+                    .buttonStyle(ScaleButtonStyle())
+                    
+                    // Reported Items Section
+                    if !viewModel.lostItems.isEmpty {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Your Reported Items")
+                                .font(.system(size: 22, weight: .bold))
+                                .foregroundColor(Color(.label))
+                                .padding(.horizontal, 16)
                         
                         VStack(spacing: 12) {
                             ForEach(viewModel.lostItems) { item in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text(item.name)
-                                        .font(.headline)
-                                    Text(item.description)
-                                        .font(.subheadline)
-                                        .foregroundColor(.gray)
-                                    Text("Contact: \(item.contact)")
-                                        .font(.footnote)
-                                        .foregroundColor(.gray)
+                                VStack(alignment: .leading, spacing: 12) {
+                                    // Lost Badge
                                     
                                     HStack {
-                                        Button("Edit") { startEditing(item) }
-                                            .foregroundColor(.blue)
-                                        Button("Resolve") { deleteItem(item) }
-                                            .foregroundColor(.red)
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "exclamationmark.triangle.fill")
+                                                .font(.system(size: 12))
+                                            Text("LOST")
+                                                .font(.system(size: 12, weight: .bold))
+                                        }
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 6)
+                                        .background(Color.orange.opacity(0.15))
+                                        .cornerRadius(8)
+
+                                        Spacer()
                                     }
-                                    .padding(.top, 4)
+                                                               .padding(.horizontal, 16)
+                                                               .padding(.top, 16)
+                                                               
+                                                               VStack(alignment: .leading, spacing: 8) {
+                                                                   Text(item.name)
+                                                                       .font(.system(size: 20, weight: .semibold))
+                                                                       .foregroundColor(Color(.label))
+                                                                   
+                                                                   Text(item.description)
+                                                                       .font(.system(size: 15))
+                                                                       .foregroundColor(Color(.secondaryLabel))
+                                                                       .lineLimit(3)
+                                                                   
+                                                                   HStack(spacing: 12) {
+                                                                       Label(item.contact, systemImage: "phone.fill")
+                                                                           .font(.system(size: 13))
+                                                                           .foregroundColor(Color(.secondaryLabel))
+                                                                   }
+                                                                   .padding(.top, 4)
+                                                               
+                                                                   HStack(spacing: 16) {
+                                                                       Button {
+                                                                           startEditing(item)
+                                                                       } label: {
+                                                                           HStack(spacing: 6) {
+                                                                               Image(systemName: "pencil")
+                                                                               Text("Edit")
+                                                                           }
+                                                                           .font(.system(size: 15, weight: .medium))
+                                                                           .foregroundColor(primaryBlue)
+                                                                       }
+                                                                       
+                                                                       Button {
+                                                                           deleteItem(item)
+                                                                       } label: {
+                                                                           HStack(spacing: 6) {
+                                                                               Image(systemName: "checkmark.circle")
+                                                                               Text("Resolve")
+                                                                           }
+                                                                           .font(.system(size: 15, weight: .medium))
+                                                                           .foregroundColor(.green)
+                                                                       }
+                                                                       
+                                                                       Spacer()
+                                        }
+                                        .padding(.top, 8)
+                                    }
+                                                               .padding(.horizontal, 16)
+                                                               .padding(.bottom, 16)
                                 }
-                                .padding()
-                                .background(Color(red: 231/255, green: 236/255, blue: 239/255))
-                                .cornerRadius(12)
-                                .padding(.horizontal)
+                                .background(cardBackground)
+                                .cornerRadius(16)
+                                .shadow(color: .black.opacity(0.1), radius: 8, y: 2)
                             }
                         }
-                        .padding(.bottom, 20)
+                        .padding(.horizontal, 16)
                     }
+                    .padding(.top, 8)
+                    .padding(.bottom, 32)
                 }
-                .padding(.bottom, 40)
             }
         }
+            .background(backgroundColor)
         .alert(isEditing ? "Item Updated Successfully" : "Item Successfully Reported", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(isEditing ? "Your item details have been updated." : "Your lost item has been submitted.")
         }
-        .navigationTitle("Report Lost")
     }
     
     private func handleSubmit() {

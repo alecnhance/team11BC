@@ -10,48 +10,48 @@ import SwiftUI
 struct MainTabView: View {
     @State private var viewModel = FirebaseViewModel()
     
+    
+    @State private var selectedTab = 0
+    
+    let primaryBlue: Color = Color(red: 0.0, green: 0.47, blue: 1.0)
+    
     var body: some View {
         TabView {
             // Inventory (Home) Page
             NavigationView {
                 InventoryView(viewModel: viewModel)
-                    .navigationTitle("Home")
+                    .navigationTitle("Inventory")
+                    .navigationBarTitleDisplayMode(.large)
             }
             .tabItem {
-                Image(systemName: "list.bullet")
-                Text("Inventory")
-            }.tint(.blue)
+                Label("Inventory", systemImage: "square.grid.2x2")
+            }
+            .tag(0)
             
             // Report Lost Item Page
             NavigationView {
                 ReportLostView(viewModel: viewModel)
                     .navigationTitle("Report Lost")
+                    .navigationBarTitleDisplayMode(.large)
             }
             .tabItem {
-                Image(systemName: "exclamationmark.bubble")
-                Text("Report Lost")
-            }.tint(.blue)
+                Label("Report Lost", systemImage: "exclamationmark.triangle")
+            }
+            .tag(1)
            
             NavigationView {
                 ReportFoundView(viewModel: viewModel)
-                    .navigationTitle("Report Found Item")
+                    .navigationTitle("Report Found")
+                    .navigationBarTitleDisplayMode(.large)
             }
             .tabItem {
-                Image(systemName: "doc.richtext")
-                Text("Report Found")
-            }.tint(.blue)
+                Label("Report Found", systemImage: "hand.raised.fill")
+            }
+            .tag(2)
             
-            
-//            // Bounty Page
-//            NavigationView {
-//                Text("Bounty Page")
-//                    .navigationTitle("Bounties")
-//            }
-//            .tabItem {
-//                Image(systemName: "doc.richtext")
-//                Text("Bounties")
-//            }.tint(.blue)
+
         }
+        .tint(primaryBlue)
     }
 }
 
