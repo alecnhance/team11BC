@@ -8,9 +8,8 @@
 import Foundation
 import SwiftUI
 
-@Observable
-class FoundItemsViewModel {
-    var foundItems: [FoundItem] = [
+class FoundItemsViewModel: ObservableObject {
+    @Published var foundItems: [FoundItem] = [
         FoundItem(category: .waterBottle, description: "White water bottle with a red stripe and skull on the side and sxmiley face sticker on top", image: UIImage(named: "waterbottle")?.pngData(), location: "Next to Skiles Walkway", contact: "1234567890"),
         FoundItem(category: .electronic, description: "MacBook Air with a smiley face sticker", image: UIImage(named: "macbook")?.pngData(), location: "At Kaldi's Coffee", contact: "123@gmail.com"),
         FoundItem(category: .bag, description: "Black backpack from North Face with a labubu in front", image: UIImage(named: "backpack")?.pngData(), location: "Come get it from me at NAV scan-in counter.", contact: "4045931277"),
