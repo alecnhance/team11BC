@@ -27,14 +27,14 @@ struct InventoryView: View {
         NavigationView {
             VStack(spacing: 0) {
                 // Filter Section
-                VStack(spacing: 16) {
+                VStack(spacing: 0) {
                     HStack(spacing: 12) {
-                        Menu {
-                            ForEach(0...2, id: \.self) { i in
-                                Button(itemsOption[i]) {
-                                    selectedLostFound = i
+                    Menu {
+                        ForEach(0...2, id: \.self) { i in
+                            Button(itemsOption[i]) {
+                                selectedLostFound = i
                                     if selectedLostFound != 1 {
-                                        selectedCategory = Category.none
+                                    selectedCategory = Category.none
                                     }
                                 }
                             }
@@ -53,14 +53,14 @@ struct InventoryView: View {
                             .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
                         }
                         
-                        if (selectedLostFound == 1) {
-                            Menu {
+                    if (selectedLostFound == 1) {
+                        Menu {
                                 ForEach (Category.allCases.filter { $0 != .none }, id: \.self) { category in
-                                    Button(category.rawValue) {
-                                        selectedCategory = category
-                                    }
+                                Button(category.rawValue) {
+                                    selectedCategory = category
                                 }
-                            } label: {
+                            }
+                        } label: {
                                 HStack {
                                     Text(selectedCategory == .none ? "All Categories" : selectedCategory.rawValue)
                                         .font(.system(size: 16, weight: .medium))
@@ -79,9 +79,9 @@ struct InventoryView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.top, 8)
                 }
                 .background(backgroundColor)
+                .padding(.top, -8)
                 
                 //Items List
                 ScrollView {
@@ -98,7 +98,7 @@ struct InventoryView: View {
                                 .buttonStyle(PlainButtonStyle())
                             }
                         }
-                        
+                                        
                         // Lost Items
                         ForEach(viewModel.lostItems) { lostItem in
                             if selectedLostFound != 1 {
@@ -119,24 +119,24 @@ struct InventoryView: View {
             .background(backgroundColor)
         }
         .background(backgroundColor)
-        .sheet(isPresented: Binding(
-            get: { selectedFoundItem != nil || selectedLostItem != nil },
-            set: { newValue in
-                if !newValue {
-                    selectedFoundItem = nil
-                    selectedLostItem = nil
-                }
+                .sheet(isPresented: Binding(
+                    get: { selectedFoundItem != nil || selectedLostItem != nil },
+                    set: { newValue in
+                        if !newValue {
+                            selectedFoundItem = nil
+                            selectedLostItem = nil
+                        }
                 
-            }
-        )) {
+                    }
+                )) {
             NavigationView {
                 if let item = selectedFoundItem {
-                    FoundItemDetailView(item: item)
-                } else if let item = selectedLostItem {
-                    LostItemDetailView(item: item)
+                        FoundItemDetailView(item: item)
+                    } else if let item = selectedLostItem {
+                        LostItemDetailView(item: item)
+                    }
                 }
             }
-        }
     }
 }
 
@@ -158,16 +158,16 @@ struct FoundItemCard: View {
                                 .frame(height: 200)
                         case .success(let image):
                             image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
                                 .frame(height: 200)
-                                .clipped()
+                        .clipped()
                         case .failure:
-                            Image(systemName: "photo")
-                                .resizable()
-                                .scaledToFit()
+                    Image(systemName: "photo")
+                        .resizable()
+                        .scaledToFit()
                                 .frame(height: 200)
-                                .foregroundStyle(.gray)
+                        .foregroundStyle(.gray)
                         @unknown default:
                             EmptyView()
                         }
@@ -193,9 +193,9 @@ struct FoundItemCard: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(primaryBlue.opacity(0.1))
-                        .cornerRadius(8)
-                    
-                    Spacer()
+             .cornerRadius(8)
+            
+            Spacer()
                 }
                 
                 // Location
@@ -203,7 +203,7 @@ struct FoundItemCard: View {
                     Image(systemName: "location.fill")
                         .font(.system(size: 14))
                         .foregroundColor(Color(.secondaryLabel))
-                    Text(item.location)
+            Text(item.location)
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(Color(.label))
                 }
@@ -247,7 +247,7 @@ struct LostItemCard: View {
                 .background(Color.orange.opacity(0.15))
                 .cornerRadius(8)
                 
-                Spacer()
+            Spacer()
             }
             
             // Item Name
@@ -458,7 +458,7 @@ struct LostItemDetailView: View {
                              .font(.system(size: 17, weight: .semibold))
                              .foregroundColor(Color(.label))
                          
-                         Text(item.description)
+                Text(item.description)
                              .font(.system(size: 17))
                              .foregroundColor(Color(.secondaryLabel))
                              .fixedSize(horizontal: false, vertical: true)
