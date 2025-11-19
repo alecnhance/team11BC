@@ -312,7 +312,7 @@ struct ReportFoundView: View {
         }
     }
     
-
+/*
     func generateDescriptionFromImageData(_ data: Data) async -> String {
         let model = GenerativeModel(name: "gemini-pro-vision", apiKey: "YOUR GEMINI API KEY")
         
@@ -331,6 +331,7 @@ struct ReportFoundView: View {
             return "Error generating description."
         }
     }
+ */
     }
 
 #Preview {
