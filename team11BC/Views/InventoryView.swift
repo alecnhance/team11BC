@@ -7,24 +7,19 @@
 
 import SwiftUI
 
-
-/*
- Colors:
- Dark Blue: 39, 76, 119
- Middle Blue: 96, 150, 186
- Light Blue: 163, 206, 241
- Nearly White Blue: 231, 236, 239
- Middle Grey: 139, 140, 137
-
- */
-
+/* Colors:
+   Dark Blue: 39, 76, 119
+   Middle Blue: 96, 150, 186
+   Light Blue: 163, 206, 241
+   Nearly White Blue: 231, 236, 239
+   Middle Grey: 139, 140, 137
+*/
 
 struct InventoryView: View {
-    
-    @State private var viewModel = FoundItemsViewModel()
+    let viewModel: FirebaseViewModel
     @State private var selectedFoundItem: FoundItem? = nil
-    @State private var selectedLostItem: [String]? = nil
-    @State private var selectedCategory: Category = Category.none
+    @State private var selectedLostItem: LostItem? = nil
+    @State private var selectedCategory: Category = .none
     @State private var selectedLostFound: Int = 0
     @State private var foundItemSheet: Bool = true
     
@@ -35,27 +30,20 @@ struct InventoryView: View {
     
     let itemsOption = ["View All", "Found Items", "Lost Items"]
     
-    let lostItems = [
-        ["Water Bottle", "blue with a butterfly sticket", "please call me at 1234567890"],
-        ["Laptop", "macbook pro with a red case and many stickets on it", "something@gatech.edu"],
-        ["Hoodie", "black hoodie with a red graphic in front, from uniqlo, size M", "9876543210"]
-    ]
-    
     var body: some View {
         NavigationStack {
-            
             VStack {
                 Text("Items Collection")
                     .font(.largeTitle.bold())
                     .foregroundStyle(itemsFoundColor)
+                
+                // Top Menu
                 HStack {
                     Menu {
                         ForEach(0...2, id: \.self) { i in
                             Button(itemsOption[i]) {
                                 selectedLostFound = i
-                                if (selectedLostFound != 1) {
-                                    selectedCategory = Category.none
-                                }
+                                if selectedLostFound != 1 { selectedCategory = .none }
                             }
                         }
                     } label: {
@@ -66,12 +54,12 @@ struct InventoryView: View {
                             .foregroundStyle(catButtonFGColor)
                             .font(.system(size: 20))
                     }
-                    if (selectedLostFound == 1) {
+                    
+                    // Category picker for Found Items
+                    if selectedLostFound == 1 {
                         Menu {
-                            ForEach (Category.allCases, id: \.self) { category in
-                                Button(category.rawValue) {
-                                    selectedCategory = category
-                                }
+                            ForEach(Category.allCases, id: \.self) { category in
+                                Button(category.rawValue) { selectedCategory = category }
                             }
                         } label: {
                             Label(selectedCategory.rawValue, systemImage: "chevron.down")
@@ -83,12 +71,12 @@ struct InventoryView: View {
                         }
                     }
                 }
-  
+                
                 ScrollView {
                     VStack(spacing: 12) {
+                        // Found Items
                         ForEach(viewModel.foundItems) { item in
-                                        
-                            if ( selectedLostFound != 2 && (selectedCategory == .none || item.category == selectedCategory)) {
+                            if selectedLostFound != 2 && (selectedCategory == .none || item.category == selectedCategory) {
                                 Button {
                                     foundItemSheet = true
                                     selectedFoundItem = item
@@ -97,53 +85,50 @@ struct InventoryView: View {
                                 }
                             }
                         }
-                        ForEach(0...2, id: \.self) { i in
-                                        
-                            if ( selectedLostFound != 1) {
+                        
+                        // Lost Items
+                        ForEach(viewModel.lostItems) { lostItem in
+                            if selectedLostFound != 1 {
                                 Button {
                                     foundItemSheet = false
-                                    selectedLostItem = lostItems[i]
+                                    selectedLostItem = lostItem
                                 } label: {
-                                    LostItemCard(item: lostItems[i])
+                                    LostItemCard(item: lostItem)
                                 }
                             }
                         }
                     }
                     .padding()
                 }
-                .sheet(isPresented: Binding(
+            }
+            .sheet(
+                isPresented: Binding(
                     get: { selectedFoundItem != nil || selectedLostItem != nil },
                     set: { newValue in
                         if !newValue {
                             selectedFoundItem = nil
                             selectedLostItem = nil
                         }
-                    }
-                )) {
-                    if foundItemSheet, let item = selectedFoundItem {
-                        FoundItemDetailView(item: item)
-                    } else if let item = selectedLostItem {
-                        LostItemDetailView(item: item)
-                    }
+                    })
+            ) {
+                if foundItemSheet, let item = selectedFoundItem {
+                    FoundItemDetailView(item: item)
+                } else if let item = selectedLostItem {
+                    LostItemDetailView(item: item)
                 }
-                            
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(backgroundColor)
-        }.navigationTitle("InventoryView")
+            .navigationTitle("InventoryView")
+        }
     }
-    //menu is first lost/found items -> if chose found items -> categories picker
-    
 }
-
 
 struct FoundItemCard: View {
     let item: FoundItem
-    
     let BGColor = Color(red: 163/255, green: 206/255, blue: 241/255)
     let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
     let locaColor = Color(red: 96/255, green: 150/255, blue: 186/255)
-       
     
     var body: some View {
         VStack {
@@ -151,17 +136,32 @@ struct FoundItemCard: View {
                 .font(.title)
                 .foregroundStyle(titleColor)
                 .multilineTextAlignment(.center)
-                .lineLimit(nil)
+            
             Spacer()
             
             GeometryReader { geo in
-                if let data = item.image, let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
-                        .clipped()
-                    
+                if let urlString = item.imageURL, let url = URL(string: urlString) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                                .clipped()
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: geo.size.width, height: UIScreen.main.bounds.height * 0.30)
+                                .foregroundStyle(.gray)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
                 } else {
                     Image(systemName: "photo")
                         .resizable()
@@ -171,14 +171,14 @@ struct FoundItemCard: View {
                 }
             }
             .frame(width: UIScreen.main.bounds.width * 0.625, height: UIScreen.main.bounds.height * 0.25)
-             .cornerRadius(8)
+            .cornerRadius(8)
             
             Spacer()
+            
             Text(item.location)
                 .font(.title3)
                 .foregroundStyle(locaColor)
                 .multilineTextAlignment(.center)
-                .lineLimit(nil)
                 .italic()
         }
         .padding()
@@ -190,21 +190,21 @@ struct FoundItemCard: View {
 }
 
 struct LostItemCard: View {
-    let item: [String]
-    
+    let item: LostItem
     let BGColor = Color(red: 163/255, green: 206/255, blue: 241/255)
     let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
     let locaColor = Color(red: 96/255, green: 150/255, blue: 186/255)
     
     var body: some View {
         VStack {
-            Text(item[0])
+            Text(item.name)
                 .font(.title)
                 .foregroundStyle(titleColor)
                 .multilineTextAlignment(.center)
-                .lineLimit(nil)
+            
             Spacer()
-            Text(item[1])
+            
+            Text(item.description)
                 .font(.title3)
                 .foregroundStyle(locaColor)
                 .multilineTextAlignment(.center)
@@ -217,58 +217,14 @@ struct LostItemCard: View {
         .cornerRadius(12)
         .shadow(radius: 0)
     }
-    
 }
 
-struct LostItemDetailView: View {
-    let item: [String]
-    
-    let BGColor = Color(red: 255/255, green: 255/255, blue: 255/255)
-    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
-    let bodyColor = Color(red: 39/255, green: 76/255, blue: 119/255)
-    
-    var body: some View {
-        ScrollView {
-            VStack {
-                Text(item[0])
-                    .font(.title)
-                    .bold()
-                    .foregroundStyle(titleColor)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                Spacer(minLength: UIScreen.main.bounds.height*0.08)
-                Text("Description:")
-                    .foregroundStyle(bodyColor)
-                    .font(.system(size: 19.5))
-                Text(item[1])
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                Spacer(minLength: UIScreen.main.bounds.height*0.08)
-                Text("Contact Information:")
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                Text(item[2])
-                    .font(.system(size: 19.5))
-                    .foregroundStyle(bodyColor)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-            }
-            .padding()
-            .background(BGColor)
-        }
-    }
-}
-
+// MARK: - Found Item Detail View
 struct FoundItemDetailView: View {
     let item: FoundItem
-    
     let BGColor = Color(red: 255/255, green: 255/255, blue: 255/255)
     let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
     let bodyColor = Color(red: 39/255, green: 76/255, blue: 119/255)
-       
-       
     
     var body: some View {
         ScrollView {
@@ -278,14 +234,30 @@ struct FoundItemDetailView: View {
                     .bold()
                     .foregroundStyle(titleColor)
                     .multilineTextAlignment(.center)
-                    .lineLimit(nil)
-                if let data = item.image,
-                   let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: UIScreen.main.bounds.width * 0.75)
-                        .cornerRadius(10)
+                
+                if let urlString = item.imageURL, let url = URL(string: urlString) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .empty:
+                            ProgressView()
+                                .frame(width: UIScreen.main.bounds.width * 0.75, height: 200)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: UIScreen.main.bounds.width * 0.75)
+                                .cornerRadius(10)
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: UIScreen.main.bounds.width * 0.75)
+                                .cornerRadius(10)
+                                .foregroundStyle(.gray)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
                 } else {
                     Image(systemName: "photo")
                         .resizable()
@@ -294,7 +266,9 @@ struct FoundItemDetailView: View {
                         .cornerRadius(10)
                         .foregroundStyle(.gray)
                 }
+                
                 Spacer(minLength: UIScreen.main.bounds.width * 0.10)
+                
                 Text("Description:")
                     .foregroundStyle(bodyColor)
                     .font(.system(size: 19.5))
@@ -302,8 +276,9 @@ struct FoundItemDetailView: View {
                     .font(.system(size: 19.5))
                     .foregroundStyle(bodyColor)
                     .multilineTextAlignment(.center)
-                    .lineLimit(nil)
+                
                 Spacer(minLength: UIScreen.main.bounds.width * 0.075)
+                
                 Text("Last Location:")
                     .font(.system(size: 19.5))
                     .foregroundStyle(bodyColor)
@@ -319,6 +294,48 @@ struct FoundItemDetailView: View {
     }
 }
 
+struct LostItemDetailView: View {
+    let item: LostItem
+    let BGColor = Color(red: 255/255, green: 255/255, blue: 255/255)
+    let titleColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    let bodyColor = Color(red: 39/255, green: 76/255, blue: 119/255)
+    
+    var body: some View {
+        ScrollView {
+            VStack {
+                Text(item.name)
+                    .font(.title)
+                    .bold()
+                    .foregroundStyle(titleColor)
+                    .multilineTextAlignment(.center)
+                
+                Spacer(minLength: UIScreen.main.bounds.height * 0.08)
+                
+                Text("Description:")
+                    .foregroundStyle(bodyColor)
+                    .font(.system(size: 19.5))
+                Text(item.description)
+                    .font(.system(size: 19.5))
+                    .foregroundStyle(bodyColor)
+                    .multilineTextAlignment(.center)
+                
+                Spacer(minLength: UIScreen.main.bounds.height * 0.08)
+                
+                Text("Contact Information:")
+                    .font(.system(size: 19.5))
+                    .foregroundStyle(bodyColor)
+                Text(item.contact)
+                    .font(.system(size: 19.5))
+                    .foregroundStyle(bodyColor)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(nil)
+            }
+            .padding()
+            .background(BGColor)
+        }
+    }
+}
+
 #Preview {
-    InventoryView()
+    InventoryView(viewModel: FirebaseViewModel())
 }

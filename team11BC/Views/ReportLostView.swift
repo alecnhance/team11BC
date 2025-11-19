@@ -6,23 +6,16 @@
 
 import SwiftUI
 
-struct LostItem: Identifiable {
-    let id = UUID()
-    var name: String
-    var description: String
-    var contact: String
-}
-
 struct ReportLostView: View {
+    let viewModel: FirebaseViewModel
     @State private var itemName = ""
     @State private var description = ""
     @State private var contactInfo = ""
     @State private var showAlert = false
     @State private var lostItems: [LostItem] = []
-    
     @State private var editingItem: LostItem?
     @State private var isEditing = false
-
+    
     var body: some View {
         ZStack {
             Color(red: 39/255, green: 76/255, blue: 119/255)
@@ -67,9 +60,7 @@ struct ReportLostView: View {
                     }
                     .padding(.horizontal)
                     
-                    Button(action: {
-                        handleSubmit()
-                    }) {
+                    Button(action: { handleSubmit() }) {
                         Text(isEditing ? "Save Changes" : "Submit")
                             .foregroundColor(Color(red: 39/255, green: 76/255, blue: 119/255))
                             .fontWeight(.bold)
@@ -81,7 +72,7 @@ struct ReportLostView: View {
                     }
                     .padding(.top, 10)
                     
-                    if !lostItems.isEmpty {
+                    if !viewModel.lostItems.isEmpty {
                         Text("Reported Items")
                             .foregroundColor(.white)
                             .font(.headline)
@@ -89,7 +80,7 @@ struct ReportLostView: View {
                             .padding(.top, 10)
                         
                         VStack(spacing: 12) {
-                            ForEach(lostItems) { item in
+                            ForEach(viewModel.lostItems) { item in
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(item.name)
                                         .font(.headline)
@@ -101,15 +92,10 @@ struct ReportLostView: View {
                                         .foregroundColor(.gray)
                                     
                                     HStack {
-                                        Button("Edit") {
-                                            startEditing(item)
-                                        }
-                                        .foregroundColor(.blue)
-                                        
-                                        Button("Resolve") {
-                                            deleteItem(item)
-                                        }
-                                        .foregroundColor(.red)
+                                        Button("Edit") { startEditing(item) }
+                                            .foregroundColor(.blue)
+                                        Button("Resolve") { deleteItem(item) }
+                                            .foregroundColor(.red)
                                     }
                                     .padding(.top, 4)
                                 }
@@ -125,8 +111,7 @@ struct ReportLostView: View {
                 .padding(.bottom, 40)
             }
         }
-        .alert(isEditing ? "Item Updated Successfully" : "Item Successfully Reported",
-               isPresented: $showAlert) {
+        .alert(isEditing ? "Item Updated Successfully" : "Item Successfully Reported", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(isEditing ? "Your item details have been updated." : "Your lost item has been submitted.")
@@ -142,20 +127,30 @@ struct ReportLostView: View {
             isEditing = false
         } else {
             let newItem = LostItem(name: itemName, description: description, contact: contactInfo)
-            lostItems.append(newItem)
+            viewModel.addLostItem(newItem) { error in
+                if error != nil {
+                    //show error alert
+                    self.showAlert = true
+                } else {
+                    //clear form on success
+                    itemName = ""
+                    description = ""
+                    contactInfo = ""
+                    showAlert = true
+                }
+            }
         }
-        itemName = ""
-        description = ""
-        contactInfo = ""
-        showAlert = true
     }
     
     private func deleteItem(_ item: LostItem) {
         withAnimation {
-            lostItems.removeAll { $0.id == item.id }
+            viewModel.deleteLostItem(item) { error in
+                if let error = error { print("Error in deleting item: \(error)")}
+                
+            }
         }
     }
-    
+        
     private func startEditing(_ item: LostItem) {
         itemName = item.name
         description = item.description
@@ -163,8 +158,9 @@ struct ReportLostView: View {
         editingItem = item
         isEditing = true
     }
+    
 }
 
 #Preview {
-    ReportLostView()
+    ReportLostView(viewModel: FirebaseViewModel())
 }

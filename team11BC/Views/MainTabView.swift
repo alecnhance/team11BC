@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @State private var viewModel = FirebaseViewModel()
+    
     var body: some View {
         TabView {
             // Inventory (Home) Page
             NavigationView {
-                InventoryView()
+                InventoryView(viewModel: viewModel)
                     .navigationTitle("Home")
             }
             .tabItem {
@@ -22,7 +24,7 @@ struct MainTabView: View {
             
             // Report Lost Item Page
             NavigationView {
-                ReportLostView()
+                ReportLostView(viewModel: viewModel)
                     .navigationTitle("Report Lost")
             }
             .tabItem {
@@ -31,7 +33,7 @@ struct MainTabView: View {
             }.tint(.blue)
            
             NavigationView {
-                ReportFoundView()
+                ReportFoundView(viewModel: viewModel)
                     .navigationTitle("Report Found Item")
             }
             .tabItem {

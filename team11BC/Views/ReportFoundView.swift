@@ -4,11 +4,12 @@
 //
 //  Created by Smitha Pasumarti on 11/10/25.
 //
-
 import SwiftUI
 import PhotosUI
+//import GoogleGenerativeAI
 
 struct ReportFoundView: View {
+    let viewModel: FirebaseViewModel
     @State private var selectedCategory: Category = .none
     @State private var description: String = ""
     @State private var contactInfo: String = ""
@@ -16,13 +17,11 @@ struct ReportFoundView: View {
     @State private var showAlert: Bool = false
     @State private var selectedPhoto: PhotosPickerItem?
     @State private var selectedImageData: Data?
-    
+    @State private var selectedImage: UIImage? = nil
     @State private var editingItem: FoundItem?
     @State private var isEditing: Bool = false
+    //@State private var viewModel = FoundItemsViewModel()
     
-    @State private var viewModel = FoundItemsViewModel()
-    
-
     var body: some View {
         ZStack {
             Color(red: 39/255, green: 76/255, blue: 119/255)
@@ -41,25 +40,31 @@ struct ReportFoundView: View {
                         Text("Category")
                             .foregroundColor(.white)
                             .font(.headline)
+                        
                         Picker("Select a category", selection: $selectedCategory) {
                             ForEach(Category.allCases, id: \.self) { category in
-                                Text(category.rawValue).tag(category)
+                                if category == Category.none {
+                                    Text("          ").tag(category)
+                                } else {
+                                    Text(category.rawValue).tag(category)
+                                }
                             }
                         }
                         .pickerStyle(.menu)
                         .padding()
                         .background(Color(red: 231/255, green: 236/255, blue: 239/255))
                         .cornerRadius(10)
-                            
+                        
                         Text("Description of Item")
                             .foregroundColor(.white)
                             .font(.headline)
+                        
                         TextEditor(text: $description)
                             .frame(height: 100)
                             .padding(8)
                             .background(Color(red: 231/255, green: 236/255, blue: 239/255))
                             .cornerRadius(10)
-                            
+                        
                         Text("Location Found")
                             .foregroundColor(.white)
                             .font(.headline)
@@ -72,6 +77,7 @@ struct ReportFoundView: View {
                         Text("Contact Details")
                             .foregroundColor(.white)
                             .font(.headline)
+                        
                         TextField("Enter your email or phone", text: $contactInfo)
                             .padding()
                             .background(Color(red: 231/255, green: 236/255, blue: 239/255))
@@ -92,16 +98,22 @@ struct ReportFoundView: View {
                             .background(Color(red: 231/255, green: 236/255, blue: 239/255))
                             .cornerRadius(10)
                         }
-                        .onChange(of: selectedPhoto) { oldValue, newValue in
-                            Task {
-                                if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                                    selectedImageData = data
+                        .onChange(of: selectedPhoto) { oldValue, newItem in
+                            guard let newItem else { return }
+
+                                Task {
+                                    do {
+                                        if let data = try await newItem.loadTransferable(type: Data.self) {
+                                            handleImageChosen(data)
+                                        }
+                                    } catch {
+                                        print("Error loading image: \(error)")
+                                    }
                                 }
-                            }
                         }
-                        if let selectedImageData,
-                           let uiImage = UIImage(data: selectedImageData) {
-                            Image(uiImage: uiImage)
+                        
+                        if let selectedImage {
+                            Image(uiImage: selectedImage)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(height: 150)
@@ -111,9 +123,7 @@ struct ReportFoundView: View {
                     }
                     .padding(.horizontal)
                     
-                    Button(action: {
-                        handleSubmit()
-                    }) {
+                    Button(action: { handleSubmit() }) {
                         Text(isEditing ? "Save Changes" : "Submit")
                             .foregroundColor(Color(red: 39/255, green: 76/255, blue: 119/255))
                             .fontWeight(.bold)
@@ -137,15 +147,30 @@ struct ReportFoundView: View {
                         VStack(spacing: 12) {
                             ForEach(viewModel.foundItems) { item in
                                 VStack(alignment: .leading, spacing: 6) {
-                                    if let data = item.image,
-                                       let img = UIImage(data: data) {
-                                        Image(uiImage: img)
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(height: 120)
-                                            .cornerRadius(10)
+                                    if let urlString = item.imageURL, let url = URL(string: urlString) {
+                                        AsyncImage(url: url) { phase in
+                                            switch phase {
+                                            case .empty:
+                                                ProgressView()
+                                                    .frame(height: 120)
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(height: 120)
+                                                    .cornerRadius(10)
+                                            case .failure:
+                                                Image(systemName: "photo")
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(height: 120)
+                                                    .foregroundColor(.gray)
+                                            @unknown default:
+                                                EmptyView()
+                                            }
+                                        }
                                     }
-                                    
+
                                     Text(item.category.rawValue)
                                         .font(.headline)
                                     Text(item.description)
@@ -157,17 +182,11 @@ struct ReportFoundView: View {
                                     Text("Contact: \(item.contact)")
                                         .font(.footnote)
                                         .foregroundColor(.gray)
-                                
                                     HStack {
-                                        Button("Edit") {
-                                            startEditing(item)
-                                        }
-                                        .foregroundColor(.blue)
-                                        
-                                        Button("Delete") {
-                                            deleteItem(item)
-                                        }
-                                        .foregroundColor(.red)
+                                        Button("Edit") { startEditing(item) }
+                                            .foregroundColor(.blue)
+                                        Button("Delete") { deleteItem(item) }
+                                            .foregroundColor(.red)
                                     }
                                     .padding(.top, 4)
                                 }
@@ -183,42 +202,54 @@ struct ReportFoundView: View {
                 .padding(.bottom, 40)
             }
         }
-        .alert(isEditing ? "Item Updated Successfully" : "Item Successfully Reported",
-               isPresented: $showAlert) {
+        .alert(isEditing ? "Item Updated Successfully" : "Item Successfully Reported", isPresented: $showAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text(isEditing ? "Your item details have been updated." : "Your lost item has been submitted.")
+            Text(isEditing ? "Your item details have been updated." : "The misplaced item has been submitted.")
         }
         .navigationTitle("Inventory Tracker")
     }
     
     private func handleSubmit() {
-        let newItem = FoundItem(
-            category: selectedCategory,
-            description: description,
-            image: selectedImageData,
-            location: location,
-            contact: contactInfo
-        )
-        
-        if isEditing, let editingItem = editingItem,
-           let index = viewModel.foundItems.firstIndex(where: { $0.id == editingItem.id }) {
-            viewModel.foundItems[index] = newItem
-            isEditing = false
-        } else {
-            viewModel.foundItems.append(newItem)
+        guard selectedCategory != .none,
+              !description.isEmpty,
+              !contactInfo.isEmpty else { return }
+
+        Task {
+            // Create the new item with imageURL nil; the URL will be set after upload
+            let newItem = FoundItem(
+                category: selectedCategory,
+                description: description,
+                imageURL: nil, // URL will be set after uploading
+                location: location,
+                contact: contactInfo
+            )
+
+            // Pass the image data separately for upload
+            viewModel.addFoundItem(newItem, imageData: selectedImageData) { error in
+                if let error = error {
+                    print("Failed to add item: \(error)")
+                    showAlert = true
+                } else {
+                    // reset form
+                    selectedCategory = .none
+                    description = ""
+                    location = ""
+                    contactInfo = ""
+                    selectedImageData = nil
+                    selectedImage = nil
+                    isEditing = false
+                    showAlert = true
+                }
+            }
         }
-        selectedCategory = .none
-        description = ""
-        location = ""
-        contactInfo = ""
-        selectedImageData = nil
-        showAlert = true
     }
     
+    
+    
     private func deleteItem(_ item: FoundItem) {
-        withAnimation {
-            viewModel.foundItems.removeAll { $0.id == item.id }
+        viewModel.deleteFoundItem(item) { error in
+            if let error = error { print("Error deleting item: \(error)") }
         }
     }
     
@@ -227,13 +258,81 @@ struct ReportFoundView: View {
         description = item.description
         location = item.location
         contactInfo = item.contact
-        selectedImageData = item.image
-        
         editingItem = item
         isEditing = true
+        
+        // Optional: load image from URL for preview
+        if let urlString = item.imageURL, let url = URL(string: urlString) {
+            Task {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    await MainActor.run {
+                        self.selectedImageData = data
+                        self.selectedImage = UIImage(data: data)
+                    }
+                } catch {
+                    print("Failed to load image for editing: \(error)")
+                    await MainActor.run {
+                        self.selectedImageData = nil
+                        self.selectedImage = nil
+                    }
+                }
+            }
+        } else {
+            selectedImageData = nil
+            selectedImage = nil
+        }
     }
-}
+    
+    func handleImageChosen(_ data: Data) {
+        Task {
+            await MainActor.run {
+                self.selectedImageData = data
+                self.selectedImage = UIImage(data: data)
+                // Generate Image Description
+                /*
+                if description == "" {
+                    self.description = "Generating description..."
+                }
+                 */
+            }
+
+            // Generate Image Description
+            /*
+            let compressed = UIImage(data: data)?.jpegData(compressionQuality: 0.5)
+
+            guard let compressed else { return }
+
+            let generated = await generateDescriptionFromImageData(compressed)
+
+            await MainActor.run {
+                self.description = generated
+            }
+             */
+        }
+    }
+    
+
+    func generateDescriptionFromImageData(_ data: Data) async -> String {
+        let model = GenerativeModel(name: "gemini-pro-vision", apiKey: "YOUR GEMINI API KEY")
+        
+        do {
+            let response = try await model.generateContent([
+                        ModelContent(role: "user", parts: [
+                            .text("Describe the item in this photo."),
+                            .data(mimetype: "image/jpeg", data)
+                        ])
+                    ])
+
+            return response.text ?? "No description generated."
+            
+        } catch {
+            print("Gemini ERROR:", error)
+            return "Error generating description."
+        }
+    }
+    }
 
 #Preview {
-    ReportFoundView()
+    ReportFoundView(viewModel: FirebaseViewModel())
 }
